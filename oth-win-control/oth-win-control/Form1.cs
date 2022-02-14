@@ -17,16 +17,20 @@ namespace oth_win_control
         public Form1()
         {
             InitializeComponent();
-
             // Find (the first-in-Z-order) Notepad window.
             IntPtr hWnd = FindWindow("Notepad", null);
-
             // If found, position it.
             if (hWnd != IntPtr.Zero)
             {
                 // Move the window to (0,0) without changing its size or position
                 // in the Z order.
-                SetWindowPos(hWnd, IntPtr.Zero, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+                RECT rc = new RECT();
+                GetWindowRect(hWnd, out rc);
+                MessageBox.Show($"top: {rc.top}\n" +
+                    $"left: {rc.left}\n" +
+                    $"right: {rc.right}\n" +
+                    $"bottom: {rc.bottom}");
+                SetWindowPos(hWnd, IntPtr.Zero, 20, Screen.PrimaryScreen.WorkingArea.Height - (rc.bottom - rc.top) - 20, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
             }
         }
 
@@ -37,6 +41,21 @@ namespace oth_win_control
 
         [DllImport("user32.dll", SetLastError = true)]
         static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+        [DllImport("user32.dll")]
+        public static extern int GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+        [DllImport("user32.dll")]
+        public static extern int GetClientRect(IntPtr hWnd, out RECT lpRect);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT
+        {
+            public int left;
+            public int top;
+            public int right;
+            public int bottom;
+        }
 
         const uint SWP_NOSIZE = 0x0001;
         const uint SWP_NOZORDER = 0x0004;
